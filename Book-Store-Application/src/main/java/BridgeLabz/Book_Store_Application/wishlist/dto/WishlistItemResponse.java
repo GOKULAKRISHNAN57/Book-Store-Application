@@ -5,18 +5,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WishlistResponse {
+public class WishlistItemResponse {
 
-    private Long wishlistId;
+    private Long productId;
 
-    private Long userId;
+    private String title;
 
-    private List<WishlistItemResponse> items;
+    private String author;
+
+    private String imageUrl;
+
+    private BigDecimal price;
 
 }
