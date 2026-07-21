@@ -1,4 +1,30 @@
 package BridgeLabz.Book_Store_Application.customer.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CustomerDetailsRequest {
+
+    @NotBlank(message = "First name is required.")
+    @Size(max = 100, message = "First name must not exceed 100 characters.")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required.")
+    @Size(max = 100, message = "Last name must not exceed 100 characters.")
+    private String lastName;
+
+    @NotBlank(message = "Phone number is required.")
+    @Pattern(
+            regexp = "^[6-9]\\d{9}$",
+            message = "Phone number must be a valid 10-digit Indian mobile number."
+    )
+    private String phoneNumber;
+
 }
