@@ -69,4 +69,7 @@ public class UserDetailsImpl implements UserDetails {
         return Boolean.TRUE.equals(user.getActive());
     }
 
+    public Long getId() {
+        return user.getId();
+    }
 }
