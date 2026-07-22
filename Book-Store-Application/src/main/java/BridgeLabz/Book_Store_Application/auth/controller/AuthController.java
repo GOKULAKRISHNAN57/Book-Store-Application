@@ -25,7 +25,9 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<String> register(
-            @Valid @RequestBody RegisterRequest request) {
+            @Valid
+            @RequestBody
+            RegisterRequest request) {
 
         authService.register(request);
 
@@ -41,7 +43,9 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request) {
+            @Valid
+            @RequestBody
+            LoginRequest request) {
 
         LoginResponse response = authService.login(request);
 
