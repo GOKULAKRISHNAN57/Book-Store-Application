@@ -2,6 +2,8 @@ package BridgeLabz.Book_Store_Application.product.service.impl;
 
 import BridgeLabz.Book_Store_Application.category.entity.Category;
 import BridgeLabz.Book_Store_Application.category.repository.CategoryRepository;
+import BridgeLabz.Book_Store_Application.common.constants.SortConstants;
+import BridgeLabz.Book_Store_Application.common.util.SortUtil;
 import BridgeLabz.Book_Store_Application.exception.DuplicateResourceException;
 import BridgeLabz.Book_Store_Application.exception.ResourceNotFoundException;
 import BridgeLabz.Book_Store_Application.product.dto.ProductRequest;
@@ -15,6 +17,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import BridgeLabz.Book_Store_Application.product.dto.ProductFilterRequest;
+import BridgeLabz.Book_Store_Application.product.specification.ProductSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 
@@ -98,20 +111,7 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.toResponse(product);
     }
 
-    /**
-     * Get All Products
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductResponse> getAllProducts() {
 
-        log.info("Fetching all active products");
-
-        return productRepository.findByActiveTrue()
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
 
     /**
      * Get Products By Category
@@ -135,22 +135,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Search Product
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductResponse> searchProducts(String keyword) {
-
-        log.info("Searching product : {}", keyword);
-
-        return productRepository
-                .findByTitleContainingIgnoreCaseAndActiveTrue(keyword)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    /**
      * Soft Delete Product
      */
     @Override
@@ -166,6 +150,35 @@ public class ProductServiceImpl implements ProductService {
         product.setActive(false);
 
         productRepository.save(product);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getProducts(ProductFilterRequest request) {
+
+        log.info("Fetching products with filters");
+
+        Sort sort = SortUtil.getSort(
+                request.getSortBy(),
+                request.getDirection(),
+                SortConstants.PRODUCT_SORT_FIELDS
+        );
+
+        Pageable pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                sort
+        );
+
+        Specification<Product> specification =
+                ProductSpecification.buildSpecification(request);
+
+        Page<Product> products = productRepository.findAll(
+                specification,
+                pageable
+        );
+
+        return products.map(productMapper::toResponse);
     }
 
 }

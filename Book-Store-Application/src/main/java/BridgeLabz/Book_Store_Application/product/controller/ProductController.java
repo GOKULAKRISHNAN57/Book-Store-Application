@@ -1,12 +1,14 @@
 package BridgeLabz.Book_Store_Application.product.controller;
 
 import BridgeLabz.Book_Store_Application.common.response.ApiResponse;
+import BridgeLabz.Book_Store_Application.product.dto.ProductFilterRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductResponse;
 import BridgeLabz.Book_Store_Application.product.dto.ProductUpdateRequest;
 import BridgeLabz.Book_Store_Application.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,18 +55,24 @@ public class ProductController {
     }
 
     /**
-     * Get All Products
+     * Get Products
+     * Supports:
+     * Pagination
+     * Sorting
+     * Search
+     * Filtering
      */
     @GetMapping
-    public ApiResponse<List<ProductResponse>> getAllProducts() {
+    public ApiResponse<Page<ProductResponse>> getProducts(
+            ProductFilterRequest request) {
 
-        List<ProductResponse> response = productService.getAllProducts();
+        Page<ProductResponse> response =
+                productService.getProducts(request);
 
-        return ApiResponse.<List<ProductResponse>>builder()
-                .success(true)
-                .message("Products fetched successfully")
-                .data(response)
-                .build();
+        return ApiResponse.success(
+                "Products retrieved successfully",
+                response
+        );
     }
 
     /**
@@ -80,23 +88,6 @@ public class ProductController {
         return ApiResponse.<List<ProductResponse>>builder()
                 .success(true)
                 .message("Products fetched successfully")
-                .data(response)
-                .build();
-    }
-
-    /**
-     * Search Products
-     */
-    @GetMapping("/search")
-    public ApiResponse<List<ProductResponse>> searchProducts(
-            @RequestParam String keyword) {
-
-        List<ProductResponse> response =
-                productService.searchProducts(keyword);
-
-        return ApiResponse.<List<ProductResponse>>builder()
-                .success(true)
-                .message("Search completed successfully")
                 .data(response)
                 .build();
     }
