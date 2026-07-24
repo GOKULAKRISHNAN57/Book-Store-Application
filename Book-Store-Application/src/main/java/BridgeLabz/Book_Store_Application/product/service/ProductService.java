@@ -1,5 +1,6 @@
 package BridgeLabz.Book_Store_Application.product.service;
 
+import BridgeLabz.Book_Store_Application.product.dto.ProductFilterRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductResponse;
 import BridgeLabz.Book_Store_Application.product.dto.ProductUpdateRequest;
@@ -25,19 +26,14 @@ public interface ProductService {
     ProductResponse getProductById(Long id);
 
     /**
-     * Get all active products.
+     * Get products with pagination, sorting, searching and filtering.
      */
-    Page<ProductResponse> getAllProducts(int page, int size);
+    Page<ProductResponse> getProducts(ProductFilterRequest request);
 
     /**
      * Get all products by category.
      */
     List<ProductResponse> getProductsByCategory(Long categoryId);
-
-    /**
-     * Search products by title.
-     */
-    List<ProductResponse> searchProducts(String keyword);
 
     /**
      * Soft delete a product.

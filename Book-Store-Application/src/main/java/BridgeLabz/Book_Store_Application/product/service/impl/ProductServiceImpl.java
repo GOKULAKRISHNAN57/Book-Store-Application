@@ -2,8 +2,11 @@ package BridgeLabz.Book_Store_Application.product.service.impl;
 
 import BridgeLabz.Book_Store_Application.category.entity.Category;
 import BridgeLabz.Book_Store_Application.category.repository.CategoryRepository;
+import BridgeLabz.Book_Store_Application.common.constants.SortConstants;
+import BridgeLabz.Book_Store_Application.common.util.SortUtil;
 import BridgeLabz.Book_Store_Application.exception.DuplicateResourceException;
 import BridgeLabz.Book_Store_Application.exception.ResourceNotFoundException;
+import BridgeLabz.Book_Store_Application.product.dto.ProductFilterRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductResponse;
 import BridgeLabz.Book_Store_Application.product.dto.ProductUpdateRequest;
@@ -11,13 +14,16 @@ import BridgeLabz.Book_Store_Application.product.entity.Product;
 import BridgeLabz.Book_Store_Application.product.mapper.ProductMapper;
 import BridgeLabz.Book_Store_Application.product.repository.ProductRepository;
 import BridgeLabz.Book_Store_Application.product.service.ProductService;
+import BridgeLabz.Book_Store_Application.product.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -102,14 +108,41 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Get All Products
+     * Get Products
+     * Supports Pagination, Sorting, Search and Filtering
      */
     @Override
-    public Page<ProductResponse> getAllProducts(int page, int size) {
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getProducts(ProductFilterRequest request) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        log.info("Fetching products with filters");
 
-        Page<Product> products = productRepository.findAll(pageable);
+        // Validate Price Range
+        if (request.getMinPrice() != null &&
+                request.getMaxPrice() != null &&
+                request.getMinPrice().compareTo(request.getMaxPrice()) > 0) {
+
+            throw new IllegalArgumentException(
+                    "Minimum price cannot be greater than maximum price.");
+        }
+
+        Sort sort = SortUtil.getSort(
+                request.getSortBy(),
+                request.getDirection(),
+                SortConstants.PRODUCT_SORT_FIELDS
+        );
+
+        Pageable pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                sort
+        );
+
+        Specification<Product> specification =
+                ProductSpecification.buildSpecification(request);
+
+        Page<Product> products =
+                productRepository.findAll(specification, pageable);
 
         return products.map(productMapper::toResponse);
     }
@@ -136,22 +169,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Search Product
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductResponse> searchProducts(String keyword) {
-
-        log.info("Searching product : {}", keyword);
-
-        return productRepository
-                .findByTitleContainingIgnoreCaseAndActiveTrue(keyword)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    /**
      * Soft Delete Product
      */
     @Override
@@ -168,5 +185,4 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.save(product);
     }
-
 }

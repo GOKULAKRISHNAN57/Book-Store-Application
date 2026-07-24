@@ -12,11 +12,13 @@ import lombok.NoArgsConstructor;
 public class ApiResponse<T> {
 
     private boolean success;
+
     private String message;
+
     private T data;
 
     /**
-     * Success Response
+     * Success response with data
      */
     public static <T> ApiResponse<T> success(String message, T data) {
         return ApiResponse.<T>builder()
@@ -27,20 +29,29 @@ public class ApiResponse<T> {
     }
 
     /**
-     * Error Response
+     * Success response without data
      */
-    public static <T> ApiResponse<T> error(String message) {
+    public static <T> ApiResponse<T> success(String message) {
         return ApiResponse.<T>builder()
-                .success(false)
+                .success(true)
                 .message(message)
-                .data(null)
                 .build();
     }
 
     /**
-     * Error Response with data
+     * Failure response without data
      */
-    public static <T> ApiResponse<T> error(String message, T data) {
+    public static <T> ApiResponse<T> failure(String message) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .build();
+    }
+
+    /**
+     * Failure response with data
+     */
+    public static <T> ApiResponse<T> failure(String message, T data) {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
