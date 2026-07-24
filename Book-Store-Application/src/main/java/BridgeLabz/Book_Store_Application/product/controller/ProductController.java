@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -56,15 +57,21 @@ public class ProductController {
      * Get All Products
      */
     @GetMapping
-    public ApiResponse<List<ProductResponse>> getAllProducts() {
+    public ApiResponse<Page<ProductResponse>> getAllProducts(
 
-        List<ProductResponse> response = productService.getAllProducts();
+            @RequestParam(defaultValue = "0")
+            int page,
 
-        return ApiResponse.<List<ProductResponse>>builder()
-                .success(true)
-                .message("Products fetched successfully")
-                .data(response)
-                .build();
+            @RequestParam(defaultValue = "10")
+            int size) {
+
+        Page<ProductResponse> response =
+                productService.getAllProducts(page, size);
+
+        return ApiResponse.success(
+                "Products retrieved successfully.",
+                response
+        );
     }
 
     /**

@@ -3,6 +3,7 @@ package BridgeLabz.Book_Store_Application.product.service;
 import BridgeLabz.Book_Store_Application.product.dto.ProductRequest;
 import BridgeLabz.Book_Store_Application.product.dto.ProductResponse;
 import BridgeLabz.Book_Store_Application.product.dto.ProductUpdateRequest;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public interface ProductService {
     /**
      * Get all active products.
      */
-    List<ProductResponse> getAllProducts();
+    Page<ProductResponse> getAllProducts(int page, int size);
 
     /**
      * Get all products by category.

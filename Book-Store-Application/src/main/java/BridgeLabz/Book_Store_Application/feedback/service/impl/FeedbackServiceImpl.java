@@ -16,6 +16,8 @@ import BridgeLabz.Book_Store_Application.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import BridgeLabz.Book_Store_Application.order.repository.OrderRepository;
+
 
 import java.util.List;
 
@@ -31,6 +33,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final UserRepository userRepository;
 
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
 
     private User getUser(Long userId) {
 
@@ -48,61 +51,6 @@ public class FeedbackServiceImpl implements FeedbackService {
                         new ResourceNotFoundException(
                                 "Product not found with ID: " + productId
                         ));
-    }
-
-    @Override
-    public FeedbackResponse addFeedback(
-            Long userId,
-            FeedbackRequest request) {
-
-        User user = getUser(userId);
-
-        Product product = getProduct(request.getProductId());
-
-        if (!Boolean.TRUE.equals(product.getActive())) {
-            throw new BadRequestException(
-                    "Product is not available."
-            );
-        }
-
-        if (feedbackRepository.existsByUserAndProduct(user, product)) {
-            throw new BadRequestException(
-                    "You have already submitted feedback for this product."
-            );
-        }
-
-        Feedback feedback = Feedback.builder()
-                .user(user)
-                .product(product)
-                .rating(request.getRating())
-                .review(request.getReview())
-                .build();
-
-        Feedback savedFeedback = feedbackRepository.save(feedback);
-
-        return feedbackMapper.toResponse(savedFeedback);
-    }
-    @Override
-    public FeedbackResponse updateFeedback(
-            Long userId,
-            Long feedbackId,
-            FeedbackRequest request) {
-
-        User user = getUser(userId);
-
-        Feedback feedback = feedbackRepository
-                .findByIdAndUser(feedbackId, user)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Feedback not found."
-                        ));
-
-        feedback.setRating(request.getRating());
-        feedback.setReview(request.getReview());
-
-        Feedback updatedFeedback = feedbackRepository.save(feedback);
-
-        return feedbackMapper.toResponse(updatedFeedback);
     }
 
     @Override
@@ -157,6 +105,70 @@ public class FeedbackServiceImpl implements FeedbackService {
                 )
                 .totalReviews(totalReviews)
                 .build();
+    }
+    @Override
+    public FeedbackResponse addFeedback(
+            Long userId,
+            FeedbackRequest request) {
+
+        User user = getUser(userId);
+
+        Product product = getProduct(request.getProductId());
+
+        if (!Boolean.TRUE.equals(product.getActive())) {
+            throw new BadRequestException(
+                    "Product is not available."
+            );
+        }
+
+        if (feedbackRepository.existsByUserAndProduct(user, product)) {
+            throw new BadRequestException(
+                    "You have already submitted feedback for this product."
+            );
+        }
+
+        // Check whether the user has purchased and received the product
+        if (!orderRepository.hasPurchasedProduct(
+                userId,
+                request.getProductId())) {
+
+            throw new BadRequestException(
+                    "You can review only products that have been delivered."
+            );
+        }
+
+        Feedback feedback = Feedback.builder()
+                .user(user)
+                .product(product)
+                .rating(request.getRating())
+                .review(request.getReview())
+                .build();
+
+        Feedback savedFeedback = feedbackRepository.save(feedback);
+
+        return feedbackMapper.toResponse(savedFeedback);
+    }
+    @Override
+    public FeedbackResponse updateFeedback(
+            Long userId,
+            Long feedbackId,
+            FeedbackRequest request) {
+
+        User user = getUser(userId);
+
+        Feedback feedback = feedbackRepository
+                .findByIdAndUser(feedbackId, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Feedback not found."
+                        ));
+
+        feedback.setRating(request.getRating());
+        feedback.setReview(request.getReview());
+
+        Feedback updatedFeedback = feedbackRepository.save(feedback);
+
+        return feedbackMapper.toResponse(updatedFeedback);
     }
 
 }

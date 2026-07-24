@@ -15,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -102,15 +105,13 @@ public class ProductServiceImpl implements ProductService {
      * Get All Products
      */
     @Override
-    @Transactional(readOnly = true)
-    public List<ProductResponse> getAllProducts() {
+    public Page<ProductResponse> getAllProducts(int page, int size) {
 
-        log.info("Fetching all active products");
+        Pageable pageable = PageRequest.of(page, size);
 
-        return productRepository.findByActiveTrue()
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
+        Page<Product> products = productRepository.findAll(pageable);
+
+        return products.map(productMapper::toResponse);
     }
 
     /**
