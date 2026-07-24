@@ -8,10 +8,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "feedbacks",
+@Table(
+        name = "feedback",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "product_id"})
-        })
+                @UniqueConstraint(
+                        columnNames = {"user_id", "product_id"}
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,24 +28,30 @@ public class Feedback {
     private Long id;
 
     /**
-     * Many feedbacks belong to one user.
+     * User who submitted the feedback
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     /**
-     * Many feedbacks belong to one product.
+     * Product being reviewed
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    /**
+     * Rating between 1 and 5
+     */
     @Column(nullable = false)
     private Integer rating;
 
-    @Column(length = 1000)
-    private String comment;
+    /**
+     * Customer review
+     */
+    @Column(length = 2000)
+    private String review;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -60,4 +70,5 @@ public class Feedback {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
 }

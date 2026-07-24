@@ -1,23 +1,21 @@
 package BridgeLabz.Book_Store_Application.feedback.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class FeedbackResponse {
 
-    private Long id;
+    private Long feedbackId;
 
     private Long userId;
 
-    private String userFullName;
+    private String userName;
 
     private Long productId;
 
@@ -25,9 +23,8 @@ public class FeedbackResponse {
 
     private Integer rating;
 
-    private String comment;
+    private String review;
 
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
 }

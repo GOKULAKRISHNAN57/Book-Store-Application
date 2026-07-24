@@ -8,11 +8,43 @@ import java.util.List;
 
 public interface FeedbackService {
 
-    FeedbackResponse addFeedback(Long userId, FeedbackRequest request);
+    /**
+     * Add feedback for a product.
+     */
+    FeedbackResponse addFeedback(
+            Long userId,
+            FeedbackRequest request
+    );
 
-    List<FeedbackResponse> getFeedbackForProduct(Long productId);
+    /**
+     * Update existing feedback.
+     */
+    FeedbackResponse updateFeedback(
+            Long userId,
+            Long feedbackId,
+            FeedbackRequest request
+    );
 
-    RatingSummary getRatingSummary(Long productId);
+    /**
+     * Delete feedback.
+     */
+    void deleteFeedback(
+            Long userId,
+            Long feedbackId
+    );
 
-    void deleteFeedback(Long userId, Long feedbackId);
+    /**
+     * Get all feedback for a product.
+     */
+    List<FeedbackResponse> getProductFeedbacks(
+            Long productId
+    );
+
+    /**
+     * Get rating summary of a product.
+     */
+    RatingSummary getRatingSummary(
+            Long productId
+    );
+
 }

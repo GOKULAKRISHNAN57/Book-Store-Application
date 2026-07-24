@@ -1,6 +1,5 @@
 package BridgeLabz.Book_Store_Application.feedback.service.impl;
 
-import BridgeLabz.Book_Store_Application.exception.AccessDeniedException;
 import BridgeLabz.Book_Store_Application.exception.BadRequestException;
 import BridgeLabz.Book_Store_Application.exception.ResourceNotFoundException;
 import BridgeLabz.Book_Store_Application.feedback.dto.FeedbackRequest;
@@ -26,88 +25,138 @@ import java.util.List;
 public class FeedbackServiceImpl implements FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+
     private final FeedbackMapper feedbackMapper;
 
-    @Override
-    public FeedbackResponse addFeedback(Long userId, FeedbackRequest request) {
+    private final UserRepository userRepository;
 
-        // Find the logged-in user
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found with ID: " + userId));
+    private final ProductRepository productRepository;
 
-        // Find active product
-        Product product = productRepository.findByIdAndActiveTrue(request.getProductId())
+    private User getUser(Long userId) {
+
+        return userRepository.findById(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Product not found with ID: " + request.getProductId()));
+                                "User not found with ID: " + userId
+                        ));
+    }
 
-        // Prevent duplicate feedback from the same user for the same product
-        if (feedbackRepository.existsByUserAndProduct(user, product)) {
-            throw new BadRequestException("You have already reviewed this product.");
+    private Product getProduct(Long productId) {
+
+        return productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Product not found with ID: " + productId
+                        ));
+    }
+
+    @Override
+    public FeedbackResponse addFeedback(
+            Long userId,
+            FeedbackRequest request) {
+
+        User user = getUser(userId);
+
+        Product product = getProduct(request.getProductId());
+
+        if (!Boolean.TRUE.equals(product.getActive())) {
+            throw new BadRequestException(
+                    "Product is not available."
+            );
         }
 
-        // Create feedback
+        if (feedbackRepository.existsByUserAndProduct(user, product)) {
+            throw new BadRequestException(
+                    "You have already submitted feedback for this product."
+            );
+        }
+
         Feedback feedback = Feedback.builder()
                 .user(user)
                 .product(product)
                 .rating(request.getRating())
-                .comment(request.getComment())
+                .review(request.getReview())
                 .build();
 
-        feedbackRepository.save(feedback);
+        Feedback savedFeedback = feedbackRepository.save(feedback);
 
-        return feedbackMapper.toResponse(feedback);
+        return feedbackMapper.toResponse(savedFeedback);
+    }
+    @Override
+    public FeedbackResponse updateFeedback(
+            Long userId,
+            Long feedbackId,
+            FeedbackRequest request) {
+
+        User user = getUser(userId);
+
+        Feedback feedback = feedbackRepository
+                .findByIdAndUser(feedbackId, user)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Feedback not found."
+                        ));
+
+        feedback.setRating(request.getRating());
+        feedback.setReview(request.getReview());
+
+        Feedback updatedFeedback = feedbackRepository.save(feedback);
+
+        return feedbackMapper.toResponse(updatedFeedback);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<FeedbackResponse> getFeedbackForProduct(Long productId) {
+    public void deleteFeedback(
+            Long userId,
+            Long feedbackId) {
 
-        // Ensure product exists
-        productRepository.findByIdAndActiveTrue(productId)
+        User user = getUser(userId);
+
+        Feedback feedback = feedbackRepository
+                .findByIdAndUser(feedbackId, user)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found with ID: " + productId));
+                        new ResourceNotFoundException(
+                                "Feedback not found."
+                        ));
 
-        return feedbackRepository.findByProductId(productId)
-                .stream()
-                .map(feedbackMapper::toResponse)
-                .toList();
+        feedbackRepository.delete(feedback);
     }
-
     @Override
     @Transactional(readOnly = true)
-    public RatingSummary getRatingSummary(Long productId) {
+    public List<FeedbackResponse> getProductFeedbacks(
+            Long productId) {
 
-        // Ensure product exists
-        productRepository.findByIdAndActiveTrue(productId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found with ID: " + productId));
+        getProduct(productId);
 
-        Double averageRating = feedbackRepository.findAverageRatingByProductId(productId);
-        long totalReviews = feedbackRepository.countByProductId(productId);
+        return feedbackMapper.toResponseList(
+                feedbackRepository.findByProductId(productId)
+        );
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public RatingSummary getRatingSummary(
+            Long productId) {
+
+        Product product = getProduct(productId);
+
+        Double averageRating =
+                feedbackRepository.getAverageRating(productId);
+
+        if (averageRating == null) {
+            averageRating = 0.0;
+        }
+
+        long totalReviews =
+                feedbackRepository.countByProduct(product);
 
         return RatingSummary.builder()
-                .productId(productId)
-                .averageRating(averageRating == null ? 0.0 : Math.round(averageRating * 10.0) / 10.0)
+                .productId(product.getId())
+                .productTitle(product.getTitle())
+                .averageRating(
+                        Math.round(averageRating * 10.0) / 10.0
+                )
                 .totalReviews(totalReviews)
                 .build();
     }
 
-    @Override
-    public void deleteFeedback(Long userId, Long feedbackId) {
-
-        Feedback feedback = feedbackRepository.findById(feedbackId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Feedback not found with ID: " + feedbackId));
-
-        // Only the author of the feedback can delete it
-        if (!feedback.getUser().getId().equals(userId)) {
-            throw new AccessDeniedException("You are not allowed to delete this feedback.");
-        }
-
-        feedbackRepository.delete(feedback);
-    }
 }

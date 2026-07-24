@@ -1,19 +1,20 @@
 package BridgeLabz.Book_Store_Application.feedback.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class RatingSummary {
 
     private Long productId;
 
+    private String productTitle;
+
     private Double averageRating;
 
     private Long totalReviews;
+
 }
