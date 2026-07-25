@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import BridgeLabz.Book_Store_Application.auth.dto.ForgotPasswordRequest;
+import BridgeLabz.Book_Store_Application.auth.dto.ResetPasswordRequest;
 
 @RestController
 @RequestMapping("/api/users")
@@ -56,4 +58,38 @@ public class AuthController {
                 .build();
     }
 
+    /**
+     * Forgot Password
+     */
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(
+            @Valid
+            @RequestBody
+            ForgotPasswordRequest request) {
+
+        authService.forgotPassword(request);
+
+        return ApiResponse.<String>builder()
+                .success(true)
+                .message("Password reset email sent successfully.")
+                .data("Please check your email.")
+                .build();
+    }
+    /**
+     * Reset Password
+     */
+    @PostMapping("/reset-password")
+    public ApiResponse<String> resetPassword(
+            @Valid
+            @RequestBody
+            ResetPasswordRequest request) {
+
+        authService.resetPassword(request);
+
+        return ApiResponse.<String>builder()
+                .success(true)
+                .message("Password reset successfully.")
+                .data("Your password has been updated.")
+                .build();
+    }
 }
