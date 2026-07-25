@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import BridgeLabz.Book_Store_Application.order.dto.OrderStatusUpdateRequest;
 
 import java.util.List;
 
@@ -94,5 +95,26 @@ public class OrderController {
                 response
         );
     }
+    @PutMapping("/{orderId}/status")
+    public ApiResponse<OrderResponse> updateOrderStatus(
+
+            @PathVariable Long orderId,
+
+            @Valid
+            @RequestBody
+            OrderStatusUpdateRequest request) {
+
+        OrderResponse response =
+                orderService.updateOrderStatus(
+                        orderId,
+                        request
+                );
+
+        return ApiResponse.success(
+                "Order status updated successfully.",
+                response
+        );
+    }
+
 
 }

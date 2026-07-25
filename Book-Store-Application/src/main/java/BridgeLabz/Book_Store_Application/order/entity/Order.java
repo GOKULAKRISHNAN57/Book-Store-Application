@@ -3,6 +3,7 @@ package BridgeLabz.Book_Store_Application.order.entity;
 import BridgeLabz.Book_Store_Application.customer.entity.Address;
 import BridgeLabz.Book_Store_Application.customer.entity.CustomerProfile;
 import BridgeLabz.Book_Store_Application.enums.OrderStatus;
+import BridgeLabz.Book_Store_Application.payment.entity.Payment;
 import BridgeLabz.Book_Store_Application.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -91,4 +92,6 @@ public class Order {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+    @OneToOne(mappedBy = "order")
+    private Payment payment;
 }

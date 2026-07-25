@@ -26,6 +26,7 @@ import BridgeLabz.Book_Store_Application.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import BridgeLabz.Book_Store_Application.order.dto.OrderStatusUpdateRequest;
 
 import java.util.List;
 import java.math.BigDecimal;
@@ -260,4 +261,22 @@ public class OrderServiceImpl implements OrderService {
 
         return orderMapper.toResponse(updatedOrder);
     }
+    @Override
+    public OrderResponse updateOrderStatus(
+            Long orderId,
+            OrderStatusUpdateRequest request) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Order not found."
+                        ));
+
+        order.setOrderStatus(request.getOrderStatus());
+
+        Order updatedOrder = orderRepository.save(order);
+
+        return orderMapper.toResponse(updatedOrder);
+    }
+
 }

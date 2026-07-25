@@ -1,11 +1,13 @@
 package BridgeLabz.Book_Store_Application.order.repository;
 
 import BridgeLabz.Book_Store_Application.enums.OrderStatus;
+import BridgeLabz.Book_Store_Application.enums.PaymentStatus;
 import BridgeLabz.Book_Store_Application.order.entity.Order;
 import BridgeLabz.Book_Store_Application.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import BridgeLabz.Book_Store_Application.enums.OrderStatus;
 
 
 import java.util.List;
@@ -59,4 +61,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("userId") Long userId,
             @Param("productId") Long productId
     );
+    long countByPayment_PaymentStatus(PaymentStatus paymentStatus);
+    long countByOrderStatus(OrderStatus orderStatus);
 }

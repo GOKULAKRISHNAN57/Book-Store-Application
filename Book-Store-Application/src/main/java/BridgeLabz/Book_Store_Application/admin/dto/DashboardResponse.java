@@ -11,14 +11,43 @@ import java.math.BigDecimal;
 @Builder
 public class DashboardResponse {
 
+    /**
+     * User Statistics
+     */
     private Long totalUsers;
 
+    /**
+     * Product Statistics
+     */
     private Long totalProducts;
 
-    private Long totalOrders;
-
+    /**
+     * Category Statistics
+     */
     private Long totalCategories;
 
+    /**
+     * Order Statistics
+     */
+    private Long totalOrders;
+
+    /**
+     * Feedback Statistics
+     */
+    private Long totalFeedbacks;
+
+    /**
+     * Payment Statistics
+     */
+    private Long totalPayments;
+
+    private Long successfulPayments;
+
+    private Long failedPayments;
+
+    /**
+     * Revenue
+     */
     private BigDecimal totalRevenue;
 
 }

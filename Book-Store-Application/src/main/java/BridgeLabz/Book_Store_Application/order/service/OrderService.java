@@ -1,6 +1,7 @@
 package BridgeLabz.Book_Store_Application.order.service;
 
 import BridgeLabz.Book_Store_Application.order.dto.OrderResponse;
+import BridgeLabz.Book_Store_Application.order.dto.OrderStatusUpdateRequest;
 import BridgeLabz.Book_Store_Application.order.dto.PlaceOrderRequest;
 
 import java.util.List;
@@ -50,5 +51,17 @@ public interface OrderService {
             Long userId,
             Long orderId
     );
+
+    /**
+     * Update order status.
+     */
+    OrderResponse updateOrderStatus(
+            Long orderId,
+            OrderStatusUpdateRequest request
+    );
+
+    /**
+     * Get all orders summary.
+     */
 
 }

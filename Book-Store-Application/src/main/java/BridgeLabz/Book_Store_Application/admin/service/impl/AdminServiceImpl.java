@@ -12,6 +12,7 @@ import BridgeLabz.Book_Store_Application.enums.OrderStatus;
 import BridgeLabz.Book_Store_Application.feedback.repository.FeedbackRepository;
 import BridgeLabz.Book_Store_Application.order.entity.Order;
 import BridgeLabz.Book_Store_Application.order.repository.OrderRepository;
+import BridgeLabz.Book_Store_Application.payment.repository.PaymentRepository;
 import BridgeLabz.Book_Store_Application.product.entity.Product;
 import BridgeLabz.Book_Store_Application.product.repository.ProductRepository;
 import BridgeLabz.Book_Store_Application.user.entity.User;
@@ -19,6 +20,8 @@ import BridgeLabz.Book_Store_Application.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import BridgeLabz.Book_Store_Application.enums.PaymentStatus;
+import BridgeLabz.Book_Store_Application.payment.repository.PaymentRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,6 +42,7 @@ public class AdminServiceImpl implements AdminService {
     private final FeedbackRepository feedbackRepository;
 
     private final AdminMapper adminMapper;
+    private final PaymentRepository paymentRepository;
 
 
     @Override
@@ -52,6 +56,16 @@ public class AdminServiceImpl implements AdminService {
 
         long totalOrders = orderRepository.count();
 
+        long totalFeedbacks = feedbackRepository.count();
+
+        long totalPayments = paymentRepository.count();
+
+        long successfulPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.SUCCESS);
+
+        long failedPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.FAILED);
+
         BigDecimal totalRevenue = orderRepository.findAll()
                 .stream()
                 .filter(order -> order.getOrderStatus() == OrderStatus.DELIVERED)
@@ -63,6 +77,10 @@ public class AdminServiceImpl implements AdminService {
                 .totalProducts(totalProducts)
                 .totalCategories(totalCategories)
                 .totalOrders(totalOrders)
+                .totalFeedbacks(totalFeedbacks)
+                .totalPayments(totalPayments)
+                .successfulPayments(successfulPayments)
+                .failedPayments(failedPayments)
                 .totalRevenue(totalRevenue)
                 .build();
     }
@@ -92,48 +110,66 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public AdminStatisticsResponse getStatistics() {
 
-        long totalUsers = userRepository.count();
+        long pendingOrders =
+                orderRepository.countByOrderStatus(OrderStatus.PENDING);
 
-        long totalProducts = productRepository.count();
+        long confirmedOrders =
+                orderRepository.countByOrderStatus(OrderStatus.CONFIRMED);
 
-        long totalOrders = orderRepository.count();
+        long processingOrders =
+                orderRepository.countByOrderStatus(OrderStatus.PROCESSING);
 
-        long pendingOrders = orderRepository
-                .findByOrderStatus(OrderStatus.PENDING)
-                .size();
+        long shippedOrders =
+                orderRepository.countByOrderStatus(OrderStatus.SHIPPED);
 
-        long deliveredOrders = orderRepository
-                .findByOrderStatus(OrderStatus.DELIVERED)
-                .size();
+        long deliveredOrders =
+                orderRepository.countByOrderStatus(OrderStatus.DELIVERED);
 
-        long cancelledOrders = orderRepository
-                .findByOrderStatus(OrderStatus.CANCELLED)
-                .size();
+        long cancelledOrders =
+                orderRepository.countByOrderStatus(OrderStatus.CANCELLED);
 
-        BigDecimal totalRevenue = orderRepository.findAll()
+        long activeProducts = productRepository.findAll()
                 .stream()
-                .filter(order -> order.getOrderStatus() == OrderStatus.DELIVERED)
-                .map(Order::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(Product::getActive)
+                .count();
 
-        Double averageRating = feedbackRepository
-                .findAll()
+        long inactiveProducts = productRepository.findAll()
+                .stream()
+                .filter(product -> !product.getActive())
+                .count();
+
+        Double averageRating = feedbackRepository.findAll()
                 .stream()
                 .mapToInt(feedback -> feedback.getRating())
                 .average()
                 .orElse(0.0);
 
+        long pendingPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.PENDING);
+
+        long successfulPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.SUCCESS);
+
+        long failedPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.FAILED);
+
+        long refundedPayments =
+                paymentRepository.countByPaymentStatus(PaymentStatus.REFUNDED);
+
         return AdminStatisticsResponse.builder()
-                .totalUsers(totalUsers)
-                .totalProducts(totalProducts)
-                .totalOrders(totalOrders)
                 .pendingOrders(pendingOrders)
+                .confirmedOrders(confirmedOrders)
+                .processingOrders(processingOrders)
+                .shippedOrders(shippedOrders)
                 .deliveredOrders(deliveredOrders)
                 .cancelledOrders(cancelledOrders)
-                .totalRevenue(totalRevenue)
-                .averageProductRating(
-                        Math.round(averageRating * 10.0) / 10.0
-                )
+                .activeProducts(activeProducts)
+                .inactiveProducts(inactiveProducts)
+                .averageRating(averageRating)
+                .pendingPayments(pendingPayments)
+                .successfulPayments(successfulPayments)
+                .failedPayments(failedPayments)
+                .refundedPayments(refundedPayments)
                 .build();
     }
 }
