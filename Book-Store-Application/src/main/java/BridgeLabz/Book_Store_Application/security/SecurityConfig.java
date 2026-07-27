@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -30,23 +31,65 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                        exception.authenticationEntryPoint(
+                                jwtAuthenticationEntryPoint
+                        )
+                )
 
                 .authorizeHttpRequests(auth -> auth
 
+                        /*
+                         * Public APIs
+                         */
                         .requestMatchers(
                                 "/api/users/register",
                                 "/api/users/login",
+                                "/api/users/forgot-password",
+                                "/api/users/reset-password",
+
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
                                 "/swagger-ui.html",
-                                "/swagger-ui/**"
+                                "/v3/api-docs/**"
                         ).permitAll()
 
-                        .anyRequest().authenticated()
+                        /*
+                         * Admin APIs
+                         */
+                        .requestMatchers(
+                                "/api/admin/**"
+                        ).hasRole("ADMIN")
+
+                        /*
+                         * User APIs
+                         */
+                        .requestMatchers(
+                                "/api/cart/**",
+                                "/api/wishlist/**",
+                                "/api/orders/**",
+                                "/api/payments/**",
+                                "/api/customer/**",
+                                "/api/feedback/**"
+                        ).hasRole("USER")
+
+                        /*
+                         * Accessible by both USER and ADMIN
+                         */
+                        .requestMatchers(
+                                "/api/products/**",
+                                "/api/categories/**"
+                        ).hasAnyRole("USER", "ADMIN")
+
+                        /*
+                         * Remaining APIs
+                         */
+                        .anyRequest()
+                        .authenticated()
                 )
 
                 .addFilterBefore(
@@ -56,7 +99,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     /**
      * Authentication Manager
